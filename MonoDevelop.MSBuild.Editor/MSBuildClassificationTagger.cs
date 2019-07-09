@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
@@ -15,8 +17,6 @@ using MonoDevelop.MSBuild.Editor.Completion;
 using MonoDevelop.Xml.Editor.Completion;
 using MonoDevelop.Xml.Parser;
 using MonoDevelop.Xml.Dom;
-using System.Linq;
-using System.Threading;
 
 namespace MonoDevelop.MSBuild.Editor
 {
