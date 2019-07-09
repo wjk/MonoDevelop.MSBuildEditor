@@ -120,10 +120,8 @@ namespace MonoDevelop.MSBuild.Editor
 			if (characterSpan.IsEmpty) yield break;
 
 			foreach (XNode node in sourceDocument.AllDescendentNodes) {
-				if (characterSpan.Start >= node.Span.Start) {
-					if (characterSpan.End <= node.Span.End) {
-						yield return node;
-					}
+				if (characterSpan.Start >= node.Span.Start && characterSpan.End >= node.Span.End) {
+					yield return node;
 				}
 			}
 		}
