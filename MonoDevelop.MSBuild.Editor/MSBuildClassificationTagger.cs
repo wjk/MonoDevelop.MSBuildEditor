@@ -63,7 +63,14 @@ namespace MonoDevelop.MSBuild.Editor
 			var args = lastArgs;
 
 			if (args == null || spans.Count == 0)
-				yield break;
+				return Enumerable.Empty<ITagSpan<IClassificationTag>> ();
+
+			var tagSpans = new List<ITagSpan<IClassificationTag>> ();
+			void AddClassificationIfRangeIntersects (SnapshotSpan sourceSpan, Span range, IClassificationType tag)
+			{
+				var intersection = sourceSpan.Intersection (range);
+				if (intersection.HasValue) tagSpans.Add (new TagSpan<ClassificationTag> (intersection.Value, new ClassificationTag (tag)));
+			}
 
 			var parse = args.ParseResult;
 			var snapshot = args.Snapshot;
@@ -77,88 +84,35 @@ namespace MonoDevelop.MSBuild.Editor
 
 				foreach (XNode matchedNode in GetNodes (taggingSpan, xdoc)) {
 					if (matchedNode is XElement element) {
-						var range = new Span (element.Span.Start, 1);
-						if (taggingSpan.IntersectsWith (range)) {
-							var overlap = taggingSpan.Intersection (range);
-							if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-						}
-
-						range = new Span (element.NameSpan.Start, element.NameSpan.Length);
-						if (taggingSpan.IntersectsWith (range)) {
-							var overlap = taggingSpan.Intersection (range);
-							if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.SymbolDefinition));
-						}
+						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.Start, 1), classificationService.Operator);
+						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.NameSpan.Start, element.NameSpan.Length), classificationService.SymbolDefinition);
 
 						foreach (XAttribute attribute in element.Attributes) {
-							range = new Span (attribute.NameSpan.Start, attribute.NameSpan.Length);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.SymbolDefinition));
-							}
-
-							range = new Span (attribute.NameSpan.End, 2);
-							if (range.End <= attribute.Span.End && taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
-
-							range = new Span (attribute.ValueSpan.Start, attribute.ValueSpan.Length);
-							if (!range.IsEmpty && taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.StringLiteral));
-							}
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.Start, attribute.NameSpan.Length), classificationService.SymbolDefinition);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 2), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.ValueSpan.Start, attribute.ValueSpan.Length), classificationService.StringLiteral);
 
 							if (attribute.Span.End > attribute.ValueSpan.End) {
-								range = new Span (attribute.ValueSpan.End, 1);
-								if (taggingSpan.IntersectsWith (range)) {
-									var overlap = taggingSpan.Intersection (range);
-									if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-								}
+								AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 1), classificationService.Operator);
 							}
 						}
 
 						if (element.IsSelfClosing) {
-							range = new Span (element.Span.End - 2, 2);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 2, 2), classificationService.Operator);
 						} else if (element.ClosingTag != null) {
 							var tag = element.ClosingTag;
-
-							range = new Span (tag.Span.Start, 2);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
-
-							range = new Span (tag.Span.End - 1, 1);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
-
-							range = new Span (tag.Span.Start + 2, tag.Span.End - 1);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.SymbolDefinition));
-							}
-
-							range = new Span (element.Span.End - 1, 1);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start, 2), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start + 2, tag.Span.End - 1), classificationService.SymbolDefinition);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), classificationService.Operator);
 						} else {
-							range = new Span (element.Span.End - 1, 1);
-							if (taggingSpan.IntersectsWith (range)) {
-								var overlap = taggingSpan.Intersection (range);
-								if (overlap.HasValue) yield return new TagSpan<ClassificationTag> (overlap.Value, new ClassificationTag (classificationService.Operator));
-							}
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 1, 1), classificationService.Operator);
 						}
 					}
 				}
 			}
+
+			return tagSpans;
 		}
 
 		private static IEnumerable<XNode> GetNodes (Span characterSpan, XDocument sourceDocument)
