@@ -36,6 +36,8 @@ namespace MonoDevelop.MSBuild.Schema
 
 		public static MSBuildLanguageElement Get (string name, MSBuildLanguageElement parent = null)
 		{
+			if (name == null) return null;
+
 			if (parent != null) {
 				foreach (var child in parent.children) {
 					if (string.Equals (child.Name, name, StringComparison.OrdinalIgnoreCase)) {
