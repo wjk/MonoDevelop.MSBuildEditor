@@ -17,36 +17,36 @@ namespace MonoDevelop.MSBuild.Editor
 		public const string XmlName = "msbuild - xml name";
 		public const string XmlText = "msbuild - xml text";
 		public const string XmlProcessingInstruction = "msbuild - xml processing instruction";
-		private const string FormatLanguage = "formal language";
+		private const string FormalLanguage = "formal language";
 
 		#region Type Definitions
 
 		[Export]
-		[Name (XmlCData), BaseDefinition (FormatLanguage)]
+		[Name (XmlCData), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlCDataDefinition;
 
 		[Export]
-		[Name (XmlComment), BaseDefinition (FormatLanguage)]
+		[Name (XmlComment), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlCommentDefinition;
 
 		[Export]
-		[Name (XmlDelimiter), BaseDefinition (FormatLanguage)]
+		[Name (XmlDelimiter), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlDelimiterDefinition;
 
 		[Export]
-		[Name (XmlEntityReference), BaseDefinition (FormatLanguage)]
+		[Name (XmlEntityReference), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlEntityReferenceDefinition;
 
 		[Export]
-		[Name (XmlName), BaseDefinition (FormatLanguage)]
+		[Name (XmlName), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlNameDefinition;
 
 		[Export]
-		[Name (XmlText), BaseDefinition (FormatLanguage)]
+		[Name (XmlText), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlTextDefinition;
 
 		[Export]
-		[Name (XmlProcessingInstruction), BaseDefinition (FormatLanguage)]
+		[Name (XmlProcessingInstruction), BaseDefinition (FormalLanguage)]
 		internal readonly ClassificationTypeDefinition XmlProcessingInstructionDefinition;
 
 		#endregion
