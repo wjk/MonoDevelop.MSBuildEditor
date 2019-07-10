@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -25,11 +24,11 @@ namespace MonoDevelop.MSBuild.Editor
 		[Import]
 		JoinableTaskContext joinableTaskContext;
 		[Import]
-		IStandardClassificationService classificationService;
+		IClassificationTypeRegistryService classificationRegistry;
 
 		public ITagger<T> CreateTagger<T> (ITextBuffer buffer) where T : ITag
 		{
-			return (ITagger<T>)buffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildClassificationTagger (buffer, classificationService, joinableTaskContext));
+			return (ITagger<T>)buffer.Properties.GetOrCreateSingletonProperty (() => new MSBuildClassificationTagger (buffer, classificationRegistry, joinableTaskContext));
 		}
 	}
 }

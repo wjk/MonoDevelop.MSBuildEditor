@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -24,17 +23,17 @@ namespace MonoDevelop.MSBuild.Editor
 	{
 		readonly MSBuildBackgroundParser parser;
 		readonly JoinableTaskContext joinableTaskContext;
-		readonly IStandardClassificationService classificationService;
+		readonly IClassificationTypeRegistryService classificationRegistry;
 		ParseCompletedEventArgs<MSBuildParseResult> lastArgs;
 		ITextBuffer buffer;
 
-		public MSBuildClassificationTagger (ITextBuffer buffer, IStandardClassificationService classificationService, JoinableTaskContext joinableTaskContext)
+		public MSBuildClassificationTagger (ITextBuffer buffer, IClassificationTypeRegistryService classificationRegistry, JoinableTaskContext joinableTaskContext)
 		{
 			ITextBuffer2 buffer2 = (ITextBuffer2)buffer;
 			parser = BackgroundParser<MSBuildParseResult>.GetParser<MSBuildBackgroundParser> (buffer2);
 			parser.ParseCompleted += ParseCompleted;
 			parser.GetOrParseAsync ((ITextSnapshot2)buffer2.CurrentSnapshot, CancellationToken.None); // drop the returned value on the floor
-			this.classificationService = classificationService;
+			this.classificationRegistry = classificationRegistry;
 			this.joinableTaskContext = joinableTaskContext;
 			this.buffer = buffer;
 		}
@@ -66,8 +65,11 @@ namespace MonoDevelop.MSBuild.Editor
 				return Enumerable.Empty<ITagSpan<IClassificationTag>> ();
 
 			var tagSpans = new List<ITagSpan<IClassificationTag>> ();
-			void AddClassificationIfRangeIntersects (SnapshotSpan sourceSpan, Span range, IClassificationType tag)
+			void AddClassificationIfRangeIntersects (SnapshotSpan sourceSpan, Span range, string tagName)
 			{
+				var tag = classificationRegistry.GetClassificationType (tagName);
+				if (tag == null) throw new ArgumentException ($"Unknown classification tag '{tagName}'", nameof (tagName));
+
 				var intersection = sourceSpan.Intersection (range);
 				if (intersection.HasValue) tagSpans.Add (new TagSpan<ClassificationTag> (intersection.Value, new ClassificationTag (tag)));
 			}
@@ -84,29 +86,29 @@ namespace MonoDevelop.MSBuild.Editor
 
 				foreach (XNode matchedNode in GetNodes (taggingSpan, xdoc)) {
 					if (matchedNode is XElement element) {
-						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.Start, 1), classificationService.Operator);
-						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.NameSpan.Start, element.NameSpan.Length), classificationService.SymbolDefinition);
+						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.Start, 1), MSBuildClassificationTypes.XmlDelimiter);
+						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.NameSpan.Start, element.NameSpan.Length), MSBuildClassificationTypes.XmlName);
 
 						foreach (XAttribute attribute in element.Attributes) {
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.Start, attribute.NameSpan.Length), classificationService.SymbolDefinition);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 2), classificationService.Operator);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.ValueSpan.Start, attribute.ValueSpan.Length), classificationService.StringLiteral);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.Start, attribute.NameSpan.Length), MSBuildClassificationTypes.XmlName);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 2), MSBuildClassificationTypes.XmlDelimiter);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.ValueSpan.Start, attribute.ValueSpan.Length), MSBuildClassificationTypes.XmlText);
 
 							if (attribute.Span.End > attribute.ValueSpan.End) {
-								AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 1), classificationService.Operator);
+								AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.End, 1), MSBuildClassificationTypes.XmlDelimiter);
 							}
 						}
 
 						if (element.IsSelfClosing) {
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 2, 2), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 2, 2), MSBuildClassificationTypes.XmlDelimiter);
 						} else if (element.ClosingTag != null) {
 							var tag = element.ClosingTag;
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start, 2), classificationService.Operator);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), classificationService.Operator);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start + 2, tag.Span.End - 1), classificationService.SymbolDefinition);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start, 2), MSBuildClassificationTypes.XmlDelimiter);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start + 2, tag.Span.End - 1), MSBuildClassificationTypes.XmlName);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
 						} else {
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 1, 1), classificationService.Operator);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
 						}
 					}
 				}
