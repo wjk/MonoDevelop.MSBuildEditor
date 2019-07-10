@@ -59,7 +59,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlCDataFormat : ClassificationFormatDefinition
 		{
-			private XmlCDataFormat () : base ()
+			private XmlCDataFormat ()
 			{
 				DisplayName = "MSBuild XML CDATA";
 				ForegroundColor = Colors.Gray;
@@ -72,7 +72,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlCommentFormat : ClassificationFormatDefinition
 		{
-			private XmlCommentFormat () : base ()
+			private XmlCommentFormat ()
 			{
 				DisplayName = "MSBuild XML Comment";
 				ForegroundColor = Colors.Green;
@@ -85,7 +85,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlDelimiterFormat : ClassificationFormatDefinition
 		{
-			private XmlDelimiterFormat () : base ()
+			private XmlDelimiterFormat ()
 			{
 				DisplayName = "MSBuild XML Delimiter";
 				ForegroundColor = Colors.Blue;
@@ -98,7 +98,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlNameEntityReference : ClassificationFormatDefinition
 		{
-			private XmlNameEntityReference () : base ()
+			private XmlNameEntityReference ()
 			{
 				DisplayName = "MSBuild XML Entity Reference";
 				ForegroundColor = Colors.Red;
@@ -111,7 +111,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlNameFormat : ClassificationFormatDefinition
 		{
-			private XmlNameFormat () : base ()
+			private XmlNameFormat ()
 			{
 				DisplayName = "MSBuild XML Name";
 				ForegroundColor = Colors.Red;
@@ -124,7 +124,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlTextFormat : ClassificationFormatDefinition
 		{
-			private XmlTextFormat () : base ()
+			private XmlTextFormat ()
 			{
 				DisplayName = "MSBuild XML Text";
 				ForegroundColor = Colors.Black;
@@ -137,7 +137,7 @@ namespace MonoDevelop.MSBuild.Editor
 		[UserVisible (false)]
 		private class XmlProcessingInstructionFormat : ClassificationFormatDefinition
 		{
-			private XmlProcessingInstructionFormat () : base ()
+			private XmlProcessingInstructionFormat ()
 			{
 				DisplayName = "MSBuild XML Processing Instruction";
 				ForegroundColor = Colors.Gray;
