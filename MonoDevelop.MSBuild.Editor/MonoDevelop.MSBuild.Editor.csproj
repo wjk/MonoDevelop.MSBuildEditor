@@ -18,12 +18,26 @@
     <ProjectReference Include="..\MonoDevelop.Xml\Core\MonoDevelop.Xml.Core.csproj" />
     <ProjectReference Include="..\MonoDevelop.Xml\Editor\MonoDevelop.Xml.Editor.csproj" />
     <ProjectReference Include="..\MonoDevelop.MSBuild\MonoDevelop.MSBuild.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="16.1.89" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="16.1.89" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="16.1.89" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="16.1.89" />
   </ItemGroup>
+
+  <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('OSX'))">
+    <!-- These will be resolved from the MDBinDir on macOS. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
+  </ItemGroup>
+
+  <Target Name="_AddFPFReferences" AfterTargets="ResolveMonoDevelopInstance" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <ItemGroup>
+      <Reference Include="$(MDBinDir)\PresentationCore.dll" />
+    </ItemGroup>
+  </Target>
 
 </Project>
