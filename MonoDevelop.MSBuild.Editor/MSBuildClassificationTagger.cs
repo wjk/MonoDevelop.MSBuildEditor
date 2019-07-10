@@ -87,7 +87,7 @@ namespace MonoDevelop.MSBuild.Editor
 				foreach (XNode matchedNode in GetNodes (taggingSpan, xdoc)) {
 					if (matchedNode is XElement element) {
 						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.Start, 1), MSBuildClassificationTypes.XmlDelimiter);
-						AddClassificationIfRangeIntersects (taggingSpan, new Span (element.NameSpan.Start, element.NameSpan.Length), MSBuildClassificationTypes.XmlName);
+						if (element.Name.FullName != null) AddClassificationIfRangeIntersects (taggingSpan, new Span (element.NameSpan.Start, element.NameSpan.Length), MSBuildClassificationTypes.XmlName);
 
 						foreach (XAttribute attribute in element.Attributes) {
 							AddClassificationIfRangeIntersects (taggingSpan, new Span (attribute.NameSpan.Start, attribute.NameSpan.Length), MSBuildClassificationTypes.XmlName);
@@ -106,7 +106,7 @@ namespace MonoDevelop.MSBuild.Editor
 							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start, 2), MSBuildClassificationTypes.XmlDelimiter);
 							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
 							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.Start + 2, tag.Span.End - 1), MSBuildClassificationTypes.XmlName);
-							AddClassificationIfRangeIntersects (taggingSpan, new Span (tag.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
+							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
 						} else {
 							AddClassificationIfRangeIntersects (taggingSpan, new Span (element.Span.End - 1, 1), MSBuildClassificationTypes.XmlDelimiter);
 						}
