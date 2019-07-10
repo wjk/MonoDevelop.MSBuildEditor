@@ -55,7 +55,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlCData)]
-		[Name (XmlCData)]
+		[Name (XmlCData + " format")]
 		[UserVisible (false)]
 		private class XmlCDataFormat : ClassificationFormatDefinition
 		{
@@ -68,7 +68,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlComment)]
-		[Name (XmlComment)]
+		[Name (XmlComment + " format")]
 		[UserVisible (false)]
 		private class XmlCommentFormat : ClassificationFormatDefinition
 		{
@@ -81,7 +81,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlDelimiter)]
-		[Name (XmlDelimiter)]
+		[Name (XmlDelimiter + " format")]
 		[UserVisible (false)]
 		private class XmlDelimiterFormat : ClassificationFormatDefinition
 		{
@@ -94,7 +94,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlEntityReference)]
-		[Name (XmlEntityReference)]
+		[Name (XmlEntityReference + " format")]
 		[UserVisible (false)]
 		private class XmlNameEntityReference : ClassificationFormatDefinition
 		{
@@ -107,7 +107,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlName)]
-		[Name (XmlName)]
+		[Name (XmlName + " format")]
 		[UserVisible (false)]
 		private class XmlNameFormat : ClassificationFormatDefinition
 		{
@@ -120,7 +120,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlText)]
-		[Name (XmlText)]
+		[Name (XmlText + " format")]
 		[UserVisible (false)]
 		private class XmlTextFormat : ClassificationFormatDefinition
 		{
@@ -133,7 +133,7 @@ namespace MonoDevelop.MSBuild.Editor
 
 		[Export (typeof (EditorFormatDefinition))]
 		[ClassificationType (ClassificationTypeNames = XmlProcessingInstruction)]
-		[Name (XmlProcessingInstruction)]
+		[Name (XmlProcessingInstruction + " format")]
 		[UserVisible (false)]
 		private class XmlProcessingInstructionFormat : ClassificationFormatDefinition
 		{
