@@ -44,14 +44,6 @@
         <Assembly file="MonoDevelop.Xml.Core.dll" />
     </Extension>
 
-    <Extension path="/MonoDevelop/Ide/TypeService/MefHostServices">
-        <Assembly file="MonoDevelop.MSBuild.Editor.dll" />
-    </Extension>
-
-    <Extension path="/MonoDevelop/Ide/TypeService/PlatformMefHostServices">
-        <Assembly file="MonoDevelop.MSBuild.Editor.dll" />
-    </Extension>
-
     <Extension path = "/MonoDevelop/ProjectModel/PolicySets/Mono" >
         <Policies resource="MSBuildStylePolicy.xml" />
     </Extension>
