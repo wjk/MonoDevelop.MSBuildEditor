@@ -83,10 +83,14 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			}
 
 			var items = new List<CompletionItem> ();
-			//TODO: AddMiscBeginTags (list);
 
 			foreach (var el in rr.GetElementCompletions (doc)) {
 				items.Add (CreateCompletionItem (el, doc, rr));
+			}
+
+			bool allowcData = rr.LanguageElement != null && rr.LanguageElement.ValueKind != MSBuildValueKind.Nothing;
+			foreach (var c in GetMiscellaneousTags (context.spine.Nodes, allowcData)) {
+				items.Add (c);
 			}
 
 			return CreateCompletionContext (items);
@@ -116,7 +120,16 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 				}
 			}
 
-			return CreateCompletionContext (items); ;
+			return CreateCompletionContext (items);
+		}
+
+		protected override Task<CompletionContext> GetEntityCompletionsAsync (IAsyncCompletionSession session, SnapshotPoint triggerLocation, List<XObject> nodePath, CancellationToken token)
+		{
+			var items = new List<CompletionItem> ();
+			foreach (var entity in GetBuiltInEntityItems ()) {
+				items.Add (entity);
+			}
+			return Task.FromResult (CreateCompletionContext (items));
 		}
 
 		CompletionItem CreateCompletionItem (BaseInfo info, MSBuildRootDocument doc, MSBuildResolveResult rr)
@@ -147,24 +160,42 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var spine = GetSpineParser (triggerLocation);
 			var rr = MSBuildResolver.Resolve (spine, triggerLocation.Snapshot.GetTextSource (), MSBuildRootDocument.Empty, null);
 			if (rr?.LanguageElement != null) {
-				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+				var reason = ConvertReason (trigger.Reason, trigger.Character);
+				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
-					var triggerState = ExpressionCompletion.GetTriggerState (
+					var triggerState = GetTriggerState (
 						expression,
+						reason.Value,
 						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
-						out ExpressionNode triggerExpression,
-						out var listKind,
-						out IReadOnlyList<ExpressionNode> comparandVariables
+						out ExpressionNode _,
+						out var _,
+						out IReadOnlyList<ExpressionNode> _
 					);
-					if (triggerState != ExpressionCompletion.TriggerState.None) {
+					if (triggerState != TriggerState.None) {
 						return new CompletionStartData (CompletionParticipation.ProvidesItems, new SnapshotSpan (triggerLocation.Snapshot, triggerLocation.Position - triggerLength, triggerLength));
 					}
 				}
 			}
 
 			return base.InitializeCompletion (trigger, triggerLocation, token);
+		}
+
+		static TriggerReason? ConvertReason (CompletionTriggerReason reason, char typedChar)
+		{
+			switch (reason) {
+			case CompletionTriggerReason.Insertion:
+				if (typedChar != '\0')
+					return TriggerReason.TypedChar;
+				break;
+			case CompletionTriggerReason.Backspace:
+				return TriggerReason.Backspace;
+			case CompletionTriggerReason.Invoke:
+			case CompletionTriggerReason.InvokeAndCommitIfUnique:
+				return TriggerReason.Invocation;
+			}
+			return null;
 		}
 
 		public override async Task<CompletionContext> GetCompletionContextAsync (IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
@@ -175,10 +206,12 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 			var spine = context.spine;
 
 			if (rr?.LanguageElement != null) {
-				if (ExpressionCompletion.IsPossibleExpressionCompletionContext (spine)) {
+				var reason = ConvertReason (trigger.Reason, trigger.Character);
+				if (reason.HasValue && IsPossibleExpressionCompletionContext (spine)) {
 					string expression = GetAttributeOrElementValueToCaret (spine, triggerLocation);
-					var triggerState = ExpressionCompletion.GetTriggerState (
+					var triggerState = GetTriggerState (
 						expression,
+						reason.Value,
 						trigger.Character,
 						rr.IsCondition (),
 						out int triggerLength,
@@ -186,7 +219,7 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 						out var listKind,
 						out IReadOnlyList<ExpressionNode> comparandVariables
 					);
-					if (triggerState != ExpressionCompletion.TriggerState.None) {
+					if (triggerState != TriggerState.None) {
 						var info = rr.GetElementOrAttributeValueInfo (doc);
 						if (info != null && info.ValueKind != MSBuildValueKind.Nothing) {
 							return await GetExpressionCompletionsAsync (info, triggerState, listKind, triggerLength, triggerExpression, comparandVariables, rr, triggerLocation, doc, token);
@@ -413,7 +446,3 @@ namespace MonoDevelop.MSBuild.Editor.Completion
 		ItemReference
 	}
 }
- 
- 
- 
- 
