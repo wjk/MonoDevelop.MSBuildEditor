@@ -63,7 +63,9 @@ namespace MonoDevelop.MSBuild.Language
 			return GetTriggerState (expression, reason, typedChar, out triggerLength, out triggerExpression, out listKind);
 		}
 
-		static TriggerState GetTriggerState (string expression, TriggerReason reason, char typedChar, out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
+		static TriggerState GetTriggerState (
+			string expression, TriggerReason reason, char typedChar,
+			out int triggerLength, out ExpressionNode triggerExpression, out ListKind listKind)
 		{
 			triggerLength = 0;
 			listKind = ListKind.None;
@@ -101,7 +103,7 @@ namespace MonoDevelop.MSBuild.Language
 			}
 
 			if (triggerExpression is ExpressionText text) {
-				if (typedChar == '\\' || (isBackspace && LastChar () == '\\')) {
+				if (typedChar == '\\' || (!isTypedChar && LastChar () == '\\')) {
 					triggerLength = 0;
 					return TriggerState.DirectorySeparator;
 				}
@@ -122,19 +124,10 @@ namespace MonoDevelop.MSBuild.Language
 					return isExplicit ? TriggerState.Value : TriggerState.None;
 				}
 
-				var firstChar = val[leadingWhitespace];
-
-				if (length == 1) {
+				//auto trigger on first char
+				if (length == 1 && !isBackspace) {
 					triggerLength = 1;
-					switch (firstChar) {
-					case '$': return TriggerState.PropertyOrValue;
-					case '@': return TriggerState.ItemOrValue;
-					case '%': return TriggerState.MetadataOrValue;
-					case '\\':
-						triggerLength = 0;
-						return TriggerState.DirectorySeparator;
-					default: return TriggerState.Value;
-					}
+					return TriggerState.Value;
 				}
 
 				if (isExplicit) {
@@ -188,7 +181,7 @@ namespace MonoDevelop.MSBuild.Language
 
 			if (error is IncompleteExpressionError iee && iee.WasEOF) {
 				switch (lastNode) {
-				case ExpressionItem i:
+				case ExpressionItem _:
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodOrTransform) {
 						return TriggerState.ItemFunctionName;
 					}
@@ -227,7 +220,7 @@ namespace MonoDevelop.MSBuild.Language
 						return TriggerState.None;
 					}
 					break;
-				case ExpressionPropertyFunctionInvocation pfi:
+				case ExpressionPropertyFunctionInvocation _:
 					if (iee.Kind == ExpressionErrorKind.ExpectingMethodName) {
 						return TriggerState.PropertyFunctionName;
 					}
@@ -270,11 +263,17 @@ namespace MonoDevelop.MSBuild.Language
 							(error.Kind == ExpressionErrorKind.IncompleteString && (expressionText.Parent is ExpressionArgumentList || expressionText.Parent is ExpressionItemTransform))
 							|| (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue && expressionText.Parent is ExpressionArgumentList)
 							) {
-							return GetTriggerState (expressionText.Value, reason, typedChar, out triggerLength, out triggerExpression, out _);
+							var s = GetTriggerState (
+								expressionText.Value, reason, typedChar,
+								out triggerLength, out triggerExpression, out _);
+							if (error.Kind != ExpressionErrorKind.IncompleteString && s == TriggerState.Value) {
+								return TriggerState.BareFunctionArgumentValue;
+							}
+							return s;
 						}
 					}
 					break;
-				case ExpressionArgumentList argList: {
+				case ExpressionArgumentList _: {
 						if (error.Kind == ExpressionErrorKind.ExpectingRightParenOrValue) {
 							return TriggerState.BareFunctionArgumentValue;
 						}
@@ -318,13 +317,6 @@ namespace MonoDevelop.MSBuild.Language
 			PropertyFunctionName,
 			ItemFunctionName,
 			PropertyFunctionClassName,
-			/// <summary>Value prefiltered to metadata</summary>
-			MetadataOrValue,
-			/// <summary>Value prefiltered to item</summary>
-			ItemOrValue,
-			/// <summary>Value prefiltered to property</summary>
-			PropertyOrValue,
-			/// <summary>Bare function argument</summary>
 			BareFunctionArgumentValue,
 		}
 
@@ -502,9 +494,6 @@ namespace MonoDevelop.MSBuild.Language
 		{
 			switch (trigger) {
 			case TriggerState.Value:
-			case TriggerState.MetadataOrValue:
-			case TriggerState.ItemOrValue:
-			case TriggerState.PropertyOrValue:
 				return MSBuildCompletionExtensions.GetValueCompletions (kind, doc, rr, triggerExpression);
 			case TriggerState.ItemName:
 				return doc.GetItems ();
