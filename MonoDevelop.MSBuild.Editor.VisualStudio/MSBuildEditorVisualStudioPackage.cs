@@ -23,6 +23,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 		)]
 	// dunno why this isn't part of ProvideLanguageService 🤷‍
 	[SetRegistrationOption (LanguageServiceKey, "ShowBraceCompletion", 1)]
+	[SetRegistrationOption (LanguageServiceKey, "Single Code Window Only", 0)]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".targets")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".props")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".tasks")]
@@ -34,6 +35,7 @@ namespace MonoDevelop.MSBuild.Editor.VisualStudio
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".vcxproj")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".proj")]
 	[ProvideLanguageExtension (typeof (MSBuildLanguageService), ".user")]
+	[ProvideEditorFactory (typeof (MSBuildEditorFactory), 7, CommonPhysicalViewAttributes = 0x2, TrustLevel = Microsoft.VisualStudio.Shell.Interop.__VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
 	public sealed class MSBuildEditorVisualStudioPackage : AsyncPackage
 	{
 		public const string PackageGuidString = "6c7bd60d-5321-4fb0-8684-9736003d64ad";
